@@ -176,3 +176,12 @@ double ads1115_get_voltage(ads1115_t* ads) {
   raw = ads1115_get_raw(ads);
   return (double)raw * fsr[ads->config.bit.PGA] / (double)bits;
 }
+
+float ads1115_get_voltage_f(ads1115_t* ads) {
+  const float fsr[] = {6.144f, 4.096f, 2.048f, 1.024f, 0.512f, 0.256f};
+  const int16_t bits = (1L<<15)-1;
+  int16_t raw;
+
+  raw = ads1115_get_raw(ads);
+  return (float)raw * fsr[ads->config.bit.PGA] / (float)bits;
+}
