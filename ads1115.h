@@ -1,13 +1,13 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef ADS1115_H
 #define ADS1115_H
 
 #include <stdio.h>
 #include "driver/i2c.h"
 #include "driver/gpio.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum { // register address
   ADS1115_CONVERSION_REGISTER_ADDR = 0,
@@ -98,8 +98,8 @@ void ads1115_set_max_ticks(ads1115_t* ads, TickType_t max_ticks); // maximum wai
 int16_t ads1115_get_raw(ads1115_t* ads); // get voltage in bits
 double ads1115_get_voltage(ads1115_t* ads); // get voltage in volts
 
-#endif // ifdef ADS1115_H
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif // ifdef ADS1115_H
