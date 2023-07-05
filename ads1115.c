@@ -1,9 +1,11 @@
-
 #include "ads1115.h"
+
+#include <assert.h>
+
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "esp_log.h"
 
 static void IRAM_ATTR gpio_isr_handler(void* arg) {
   const bool ret = 1; // dummy value to pass to queue
@@ -125,7 +127,10 @@ void ads1115_set_max_ticks(ads1115_t* ads, TickType_t max_ticks) {
   ads->max_ticks = max_ticks;
 }
 
-int16_t ads1115_get_raw(ads1115_t* ads) {
+esp_err_t ads1115_get_raw(ads1115_t* ads, int16_t* val) {
+  assert(ads != NULL);
+  assert(val != NULL);
+
   const static char* TAG = "ads1115_get_raw";
   const static uint16_t sps[] = {8,16,32,64,128,250,475,860};
   const static uint8_t len = 2;
@@ -146,7 +151,7 @@ int16_t ads1115_get_raw(ads1115_t* ads) {
         gpio_isr_handler_remove(ads->rdy_pin.pin);
         xQueueReset(ads->rdy_pin.gpio_evt_queue);
       }
-      return 0;
+      return err;
     }
     ads->changed = 0; // say that the data is unchanged now
   }
@@ -163,25 +168,43 @@ int16_t ads1115_get_raw(ads1115_t* ads) {
   err = ads1115_read_register(ads, ADS1115_CONVERSION_REGISTER_ADDR, data, len);
   if(err) {
     ESP_LOGE(TAG,"could not read from device: %s",esp_err_to_name(err));
-    return 0;
+    return err;
   }
-  return ((uint16_t)data[0] << 8) | (uint16_t)data[1];
+
+  *val = ((uint16_t)data[0] << 8) | (uint16_t)data[1];
+  return ESP_OK;
 }
 
-double ads1115_get_voltage(ads1115_t* ads) {
+esp_err_t ads1115_get_voltage(ads1115_t* ads, double* val) {
+  assert(ads != NULL);
+  assert(val != NULL);
+
   const double fsr[] = {6.144, 4.096, 2.048, 1.024, 0.512, 0.256};
   const int16_t bits = (1L<<15)-1;
   int16_t raw;
 
-  raw = ads1115_get_raw(ads);
-  return (double)raw * fsr[ads->config.bit.PGA] / (double)bits;
+  esp_err_t err = ads1115_get_raw(ads, &raw);
+  if (err != ESP_OK) {
+    return err;
+  }
+
+  *val = (double)raw * fsr[ads->config.bit.PGA] / (double)bits;
+  return ESP_OK;
 }
 
-float ads1115_get_voltage_f(ads1115_t* ads) {
+esp_err_t ads1115_get_voltage_f(ads1115_t* ads, float* val) {
+  assert(ads != NULL);
+  assert(val != NULL);
+
   const float fsr[] = {6.144f, 4.096f, 2.048f, 1.024f, 0.512f, 0.256f};
   const int16_t bits = (1L<<15)-1;
   int16_t raw;
 
-  raw = ads1115_get_raw(ads);
-  return (float)raw * fsr[ads->config.bit.PGA] / (float)bits;
+  esp_err_t err = ads1115_get_raw(ads, &raw);
+  if (err != ESP_OK) {
+    return err;
+  }
+
+  *val = (float)raw * fsr[ads->config.bit.PGA] / (float)bits;
+  return ESP_OK;
 }

@@ -95,9 +95,9 @@ void ads1115_set_mode(ads1115_t* ads, ads1115_mode_t mode); // set read mode
 void ads1115_set_sps(ads1115_t* ads, ads1115_sps_t sps); // set sampling speed
 void ads1115_set_max_ticks(ads1115_t* ads, TickType_t max_ticks); // maximum wait ticks for i2c bus
 
-int16_t ads1115_get_raw(ads1115_t* ads); // get voltage in bits
-double ads1115_get_voltage(ads1115_t* ads); // get voltage in volts
-float ads1115_get_voltage_f(ads1115_t* ads);
+esp_err_t ads1115_get_raw(ads1115_t* ads, int16_t* val); // get voltage in bits
+esp_err_t ads1115_get_voltage(ads1115_t* ads, double* val); // get voltage in volts
+esp_err_t ads1115_get_voltage_f(ads1115_t* ads, float* val);
 
 #ifdef __cplusplus
 }
